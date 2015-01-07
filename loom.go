@@ -13,10 +13,15 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 
 	"code.google.com/p/go.crypto/ssh"
+)
+
+var (
+	DEFAULT_SHELL string = "sh"
 )
 
 // Config contains ssh and other configuration data needed for all the public functions in loom.
@@ -422,7 +427,11 @@ func (config *Config) Local(cmd string) (string, error) {
 		fmt.Printf("local: %s\n", cmd)
 	}
 	var command *exec.Cmd
-	command = exec.Command("/bin/sh", "-c", cmd)
+	if runtime.GOOS == "windows" {
+		command = exec.Command("cmd", "/c", cmd)
+	} else {
+		command = exec.Command(DEFAULT_SHELL, "-c", cmd)
+	}
 	var out bytes.Buffer
 	command.Stdout = &out
 	err := command.Run()
